@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var facts = [String]()
+    @State private var showingAlert = false
     var body: some View {
         NavigationView {
             List(facts, id: \.self) {fact in
@@ -28,6 +29,9 @@ struct ContentView: View {
         .task {
             await loadData()
         }
+        .alert(isPresented: $showingAlert) {
+            Alert(title: Text("Loading Error"), message: Text("There was a problem loading your Cat Facts"), dismissButton: .default(Text("OK")))
+        }
     }
     
     func loadData() async {
@@ -35,9 +39,11 @@ struct ContentView: View {
             if let (data, _) = try? await URLSession.shared.data(from: url) {
                 if let decodedResponce = try? JSONDecoder().decode(Facts.self, from: data) {
                     facts = decodedResponce.facts
+                    return
                 }
             }
         }
+        showingAlert = true
     }
 }
 
